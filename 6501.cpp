@@ -1,9 +1,5 @@
 /******************************************************************************
-
-                              Online C++ Compiler.
-               Code, Compile, Run and Debug C++ program online.
-Write your code in this editor and press "Run" button to compile and execute it.
-
+Simple 6502 implementation with single instruction
 *******************************************************************************/
 
 #include <iostream>
@@ -25,9 +21,16 @@ struct Mem {
         
         for(u32 i=0; i<MAX_MEM; i++) {
             Data[i] = 0;
-        };
+        }
+    }
+     Byte operator[] (u32 Address) const {
+            return Data[Address];
+        }
         
-    };
+    // Write Byte into Memory
+    Byte& operator[](u32 Address) {
+    return Data[Address];
+}
 };
 
 // Define CPU
@@ -62,11 +65,32 @@ Byte Fetch(u32& Cycles, Mem& Memory) {
     return data;
 };
 
+
+// Opcodes
+
+static constexpr Byte
+INS_LDA_IM = 0xA9;
+
 // Execute
 void Execute(u32 Cycles, Mem& memory) {
-    cout<<"Executing instructions...";
-    while(Cycles < 0) {
+    while(Cycles > 0) {
         Byte Ins = Fetch(Cycles, memory);
+        switch(Ins)
+        {
+            case INS_LDA_IM:
+            {
+                cout << "Instructions is INS_LDA_IM" <<  endl;
+                Byte Value = Fetch(Cycles, memory);
+                A = Value;
+                Z = (A == 0);
+                N = (A & 0b10000000) > 0;
+            } break;
+            
+            default:
+            {
+                cout<<"Illegal unknown instruction" << endl;
+            }
+        }
     }
 };
 };
@@ -78,6 +102,8 @@ int main()
     Mem mem;
     CPU cpu;
     cpu.Reset(mem);
+    mem[0xFFFC] = CPU::INS_LDA_IM;
     cpu.Execute(2, mem);
+    cout<<"done..";
     return 0;
 }
